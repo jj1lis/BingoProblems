@@ -1,0 +1,122 @@
+\documentclass[uplatex,a4paper,dvipdfmx]{jsarticle}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,bm,ascmac}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{gnuplot-lua-tikz,circuitikz}
+\usetikzlibrary{intersections,calc,arrows.meta,cd,automata,positioning}
+\usepackage{here,siunitx,multicol,multirow,systeme}
+\usepackage[version=3]{mhchem}
+\usepackage{chemfig,url,braket,enumerate,mathrsfs,otf,ulem,stmaryrd,titlesec}
+\usepackage{listings,jlisting}
+\lstset{
+    language={C}, 
+    backgroundcolor={\color[gray]{.85}},
+    basicstyle={\footnotesize\ttfamily},
+    identifierstyle={\footnotesize\ttfamily},
+    commentstyle={\footnotesize\ttfamily \color[rgb]{0.5,0.5,0.5}},
+    keywordstyle={\footnotesize\ttfamily \color[rgb]{0,0,0}},
+    ndkeywordstyle={\footnotesize\ttfamily},
+    stringstyle={\footnotesize\ttfamily}, 
+    frame={tb}, 
+    breaklines=true, 
+    columns=[l]{fullflexible},
+    numbers=left,
+    %numbers=none, 
+    xrightmargin=0zw,
+    xleftmargin=3zw, 
+    numberstyle={\scriptsize},
+    stepnumber=1, 
+    numbersep=1zw,
+    escapechar={\^},
+    morecomment=[l]{//}
+} 
+\renewcommand{\labelenumi}{(\arabic{enumi})}
+\DeclareMathOperator{\Sinarc}{\mathrm{Sin}^{-1}}
+\DeclareMathOperator{\Cosarc}{\mathrm{Cos}^{-1}}
+\DeclareMathOperator{\Tanarc}{\mathrm{Tan}^{-1}}
+\DeclareMathOperator{\Real}{\mathbb{R}}
+\DeclareMathOperator{\Complex}{\mathbb{C}}
+\DeclareMathOperator{\Rational}{\mathbb{Q}}
+\DeclareMathOperator{\Natural}{\mathbb{N}}
+\DeclareMathOperator{\Integer}{\mathbb{Z}}
+\DeclareMathOperator{\Ker}{\mathrm{Ker}}
+\DeclareMathOperator{\diffset}{\backslash}
+\DeclareMathOperator{\define}{\overset{\text{def}}{\Longleftrightarrow}}
+
+\theoremstyle{definition}
+\newtheorem{dfn}{定義}
+\newtheorem{axiom}{公理}
+\newtheorem{thm}{定理}
+\newtheorem{prop}{命題}
+\newtheorem{lem}{補題}
+\newtheorem{cor}{系}
+\newtheorem{example}{例}
+\newtheorem{question}{問題}
+\newtheorem{caution}{注意}
+\newtheorem{notation}{記法}
+
+
+\title{$n$-ビンゴの臨界盤面数問題}
+\author{}
+\date{}
+
+\newcommand{\bool}{\mathbb{B}}
+\newcommand{\board}{\mathcal{B}}
+
+\begin{document}
+\maketitle
+以下，$\bool := \qty{0, 1}$は通常のブール代数としての構造を持つものとする．また行ベクトルと列ベクトルは自然に同一視し，特に断りのない限り行ベクトルで表現する．
+\begin{dfn}
+    0でない自然数$n$に対して，\textbf{$n$-ビンゴ} ($n$-Bingo) とは以下に定義されるような対象の総称である．
+    \begin{enumerate}
+        \item \textbf{$n$-ビンゴ盤} ($n$-Bingo board) ないし単に\textbf{盤面} (board) とは，$\bool$上の$n \times n$行列のことである．
+            $n$-ビンゴ盤の全体がなす集合を$\board_n := \bool^{n \times n}$とも表す．
+        \item 盤面$B = [b_{i, j}]\in \board_n$と自然数$i$ ($1 \le i \le n$) に対して，
+            \begin{itemize}
+                \item $B$の第$i$\textbf{ヨコ列} (horizontal) $R_i(B)$とはいわゆる第$i$行，すなわちベクトル$(b_{i, 1}, \ldots, b_{i, n}) \in \bool^n$のことである．
+                \item $B$の第$i$\textbf{タテ列} (vertical) $C_i(B)$とはいわゆる第$i$列，すなわちベクトル$(b_{1, i}, \ldots, b_{n, i}) \in \bool^n$のことである．
+                \item $B$の\textbf{左ナナメ列} (left-diagnal) とは$D_l(B) := (b_{1, 1}, \ldots, b_{i, i}, \ldots, b_{n, n})$で表されるベクトル$D_l(B) \in \bool^n$のことである．
+                \item $B$の\textbf{右ナナメ列} (right-diagnal) とは$D_r(B) := (b_{1, n}, \ldots, b_{i, n - i + 1}, \ldots, b_{n, 1})$で表されるベクトル$D_r(B) \in \bool^n$のことである．
+                \item $B$の各ヨコ列，タテ列，左右ナナメ列を総じて$B$の\textbf{列} (line) といい，その集合を$L(B)$で表す．
+            \end{itemize}
+        \item 盤面$B \in \board_n$について，ある列$l \in L(B)$が存在して$l = (1, \ldots, 1)$が成り立つとき，またそのときに限り，$B$は\textbf{ビンゴ} (bingo) であるという．
+    \end{enumerate}
+\end{dfn}
+\begin{notation}
+    盤面$B \in \board_n$の$(r, c)$成分を$a \in \bool$に置き換えた盤面を$B_{[(r, c) \mapsto a]}$で表す．すなわち$B = [b_{i, j}]$とすれば，
+    \begin{equation*}
+        B_{[(r, c) \mapsto a]} = [a_{i, j}],\quad
+        a_{i, j} = \left\{
+            \begin{array}{cl}
+                a &\text{if}\ (i, j) = (r, c) \\
+                b_{i, j} & \text{otherwise}
+            \end{array}
+        \right.
+    \end{equation*}
+    と書くことができる．
+\end{notation}
+\begin{dfn}
+    盤面$B = [b_{i, j}] \in \board_n$が\textbf{臨界} (critical) であるとは，$B$が次の条件をどちらも満たすことをいう．
+    \begin{itemize}
+        \item $B$はビンゴでない．
+        \item $b_{i, j} = 0$であるような任意の$i, j$ ($1 \le i, j \le n$) に対して，$B_{[(i, j) \mapsto 1]}$がビンゴになる
+    \end{itemize}
+\end{dfn}
+
+このとき，次のような問題を考えることができる．
+\begin{screen}
+\begin{question}[Kuwada, 2024] \label{question:kuwada}
+    $n$-ビンゴの臨界盤面はいくつあるか．
+\end{question}
+\end{screen}
+なお問題\ref{question:kuwada}（臨界盤面数問題）は未解決である．
+
+\newpage
+
+\begin{dfn}
+    各0でない自然数$n$に対して，$\board_n$上の順序$\preceq$を次で定義する．
+    \begin{quote}
+        $A, B \in \board_n$に対して$0$個以上の組$(i_1, j_1), \ldots, (i_m, j_m)$が存在（ただし各$1 \le k \le m$について$1 \le i_k, j_k \le n$）して
+    \end{quote}
+\end{dfn}
+\end{document}
